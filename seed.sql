@@ -51,11 +51,12 @@ INSERT INTO Seat VALUES ('1',  'A', 'FL-101', 'First',   1);
 INSERT INTO Seat VALUES ('2',  'A', 'FL-101', 'First',   1);
 INSERT INTO Seat VALUES ('10', 'B', 'FL-101', 'Business',2);
 INSERT INTO Seat VALUES ('20', 'C', 'FL-101', 'Economy', 3);
+INSERT INTO Seat VALUES ('10', 'B', 'FL-103', 'Business', 2);
 INSERT INTO Seat VALUES ('1',  'A', 'FL-102', 'First',   1);
-INSERT INTO Seat VALUES ('10', 'B', 'FL-102', 'Business',2);
 INSERT INTO Seat VALUES ('20', 'C', 'FL-102', 'Economy', 3);
 INSERT INTO Seat VALUES ('1',  'A', 'FL-103', 'First',   1);
 INSERT INTO Seat VALUES ('15', 'D', 'FL-103', 'Economy', 3);
+INSERT INTO Seat VALUES ('1',  'A', 'FL-105', 'First',   1);
 INSERT INTO Seat VALUES ('1',  'A', 'FL-104', 'First',   1);
 
 -- Tickets
@@ -79,6 +80,6 @@ INSERT INTO Reservation_Flight VALUES ('RES-005', 'FL-105');
 -- ticket_id, seat, class, flight
 INSERT INTO Ticket_Seat VALUES ('TKT-001', '1',  'A', 'FL-101');
 INSERT INTO Ticket_Seat VALUES ('TKT-002', '1',  'A', 'FL-102');
-INSERT INTO Ticket_Seat VALUES ('TKT-003', '10', 'B', 'FL-103');
+INSERT INTO Ticket_Seat VALUES ('TKT-003', '15', 'D', 'FL-103');
 INSERT INTO Ticket_Seat VALUES ('TKT-004', '1',  'A', 'FL-104');
 INSERT INTO Ticket_Seat VALUES ('TKT-005', '1',  'A', 'FL-105');
