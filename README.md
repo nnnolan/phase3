@@ -11,7 +11,7 @@ brew services start mysql
 2. Create the database and load the SQL files:
 ```
 mysql -u root -e "CREATE DATABASE airline_db;"
-mysql -u root airline_db < schema.sql
+mysql -u root airline_db < airline.sql
 mysql -u root airline_db < seed.sql
 ```
 
