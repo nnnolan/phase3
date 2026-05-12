@@ -1,0 +1,399 @@
+❯ create a ui for my airplane.py! use pyautogui or something of the like. dont overengineer it: it should   
+  just visually be bale to call the three functions                                                         
+                                                                                                            
+⏺ Let me read the existing code first.                                                                      
+                                                                                                            
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)                                                    
+                
+⏺ Three functions: search_available_flights, make_reservation_and_book_ticket, and view_itinerary. I'll use 
+  tkinter (built-in, no install needed) with tabs for each function. First I'll wrap the CLI code in
+  airplane.py in a __main__ guard so it can be imported cleanly.                                            
+                                                                                                            
+⏺ Update(airplane.py)                                                                                       
+  ⎿  Added 1 line, removed 1 line                                                                           
+      154                                                                                                   
+      155                               
+      156                                                                                                   
+      157 -if len(sys.argv) < 2:                                                                     
+      157 +if __name__ == "__main__" and len(sys.argv) < 2:                                                 
+      158      print("Usage:")                                                                            
+      159      print("  python app.py search <departure> <arrival> <date>")                               
+      160      print("  python app.py book <passport_id> <flight_id> <method>")                             
+                                                                                                            
+⏺ Update(airplane.py)                                                                                       
+  ⎿  Added 1 line, removed 1 line                                                                           
+      159      print("  python app.py search <departure> <arrival> <date>")                                 
+      160      print("  python app.py book <passport_id> <flight_id> <method>")
+      161      print("  python app.py itinerary <reservation_id>")                                          
+      162 -else:                                                                                          
+      162 +elif __name__ == "__main__":                                                                     
+      163      cmd = sys.argv[1]                                                                          
+      164      if cmd == "search":                                                                        
+      165          search_available_flights(sys.argv[2], sys.argv[3], sys.argv[4])                          
+                                                                                                            
+⏺ Now create the GUI:                                                                                       
+                                                                                                            
+⏺ Write(gui.py)                                                                                             
+  ⎿  Wrote 110 lines to gui.py
+      1 import tkinter as tk                                                                                
+      2 from tkinter import ttk                                                                           
+      3 import io                                                                                           
+      4 import sys                                                                                        
+      5 import os                                                                                           
+      6 from contextlib import redirect_stdout                                                            
+      7                                                                                                   
+      8 sys.path.insert(0, os.path.dirname(__file__))                                                       
+      9 from airplane import search_available_flights, make_reservation_and_book_ticket, view_itinera       
+        ry                                                                                                  
+     … +100 lines (ctrl+o to expand)                                                                        
+                                                                                                            
+⏺ Run it with:                             
+
+  python gui.py                                                                                             
+   
+  Three tabs — Search Flights, Book Ticket, View Itinerary — each with the exact fields their function      
+  needs. Results from the print() calls in airplane.py appear in the output box at the bottom. The only   
+  change to airplane.py was wrapping the CLI block in if __name__ == "__main__": so importing it doesn't    
+  trigger the arg-parsing.
+
+
+   gorgeous! thank you. can you also imrpove gui.py? make it as pretty/profesisonal as you can. take         
+  creative liberty                                                                                          
+  
+⏺ Let me read the current gui.py first, then write a fully redesigned version.
+
+⏺ Reading 1 file… (ctrl+o to expand)
+  ⎿  gui.py
+
+⏺ Write(gui.py)
+  ⎿  Added 210 lines, removed 63 lines
+        8  sys.path.insert(0, os.path.dirname(__file__))
+        9  from airplane import search_available_flights, make_reservation_and_book_ticket, view_itin
+           erary
+       10  
+       11 +# ── palette ──────────────────────────────────────────────                               
+       12 +NAVY      = "#003580"                                                                     
+       13 +NAVY_DARK = "#002060"                                                                     
+       14 +BLUE      = "#0057b7"                                                                     
+       15 +BLUE_HOV  = "#003da5"                                                                     
+       16 +BG        = "#f0f4f8"                                                                     
+       17 +CARD      = "#ffffff"                                                                     
+       18 +BORDER    = "#dde3ec"                                                                     
+       19 +TEXT      = "#1e293b"                                                                     
+       20 +MUTED     = "#64748b"                                                                     
+       21 +TERM_BG   = "#0f172a"                                                                     
+       22 +TERM_FG   = "#e2e8f0"                                                                     
+       23 +GREEN     = "#4ade80"                                                                     
+       24 +RED       = "#f87171"                                                                     
+       25  
+       26 +                                                                                          
+       27  class AirlineApp(tk.Tk):
+       28      def __init__(self):
+       29          super().__init__()
+       15 -        self.title("Airline Booking")                                                     
+       16 -        self.geometry("650x480")                                                          
+       30 +        self.title("SkyBook — Airline Portal")                                            
+       31 +        self.geometry("700x590")                                                          
+       32          self.resizable(False, False)
+       33 +        self.configure(bg=BG)                                                             
+       34 +        self._current_tab = None                                                          
+       35  
+       19 -        notebook = ttk.Notebook(self)                                                     
+       20 -        notebook.pack(fill="both", expand=True, padx=10, pady=10)                         
+       36 +        self._build_header()                                                              
+       37 +        self._build_tabbar()                                                              
+       38 +        self._build_content()                                                             
+       39 +        self._build_output()                                                              
+       40 +        self._switch("search")                                                            
+       41  
+       22 -        self._build_search_tab(notebook)                                                  
+       23 -        self._build_book_tab(notebook)                                                    
+       24 -        self._build_itinerary_tab(notebook)                                               
+       42 +    # ── header ───────────────────────────────────────────                               
+       43  
+       26 -        ttk.Label(self, text="Output").pack(anchor="w", padx=12)                          
+       27 -        self.output = tk.Text(self, height=9, state="disabled", wrap="word", bg="#f5f5f5",
+          - fg="black")                                                                              
+       28 -        self.output.pack(fill="both", expand=True, padx=10, pady=(0, 10))                 
+       44 +    def _build_header(self):                                                              
+       45 +        bar = tk.Frame(self, bg=NAVY, height=76)                                          
+       46 +        bar.pack(fill="x")                                                                
+       47 +        bar.pack_propagate(False)                                                         
+       48  
+       30 -    # --- helpers ---                                                                     
+       49 +        inner = tk.Frame(bar, bg=NAVY)                                                    
+       50 +        inner.place(relx=0.5, rely=0.5, anchor="center")                                  
+       51  
+       32 -    def _row(self, frame, label, row, widget_factory):                                    
+       33 -        ttk.Label(frame, text=label).grid(row=row, column=0, sticky="w", padx=8, pady=6)  
+       34 -        w = widget_factory(frame)                                                         
+       35 -        w.grid(row=row, column=1, sticky="ew", padx=8, pady=6)                            
+       36 -        return w                                                                          
+       52 +        tk.Label(inner, text="✈", bg=NAVY, fg="white",                                    
+       53 +                 font=("Helvetica Neue", 30)).pack(side="left", padx=(0, 12))             
+       54  
+       38 -    def _entry(self, frame):                                                              
+       39 -        return ttk.Entry(frame, width=32)                                                 
+       55 +        txt = tk.Frame(inner, bg=NAVY)                                                    
+       56 +        txt.pack(side="left")                                                             
+       57 +        tk.Label(txt, text="SKYBOOK", bg=NAVY, fg="white",                                
+       58 +                 font=("Helvetica Neue", 22, "bold"), letter_spacing=2).pack(anchor="w")  
+       59 +        tk.Label(txt, text="Airline Reservation Portal", bg=NAVY, fg="#93c5fd",           
+       60 +                 font=("Helvetica Neue", 9)).pack(anchor="w")                             
+       61  
+       41 -    def _show(self, text):                                                                
+       42 -        self.output.config(state="normal")                                                
+       43 -        self.output.delete("1.0", tk.END)                                                 
+       44 -        self.output.insert(tk.END, text.strip() if text.strip() else "(no output)")       
+       45 -        self.output.config(state="disabled")                                              
+       62 +    # ── tab bar ──────────────────────────────────────────                               
+       63  
+       47 -    def _call(self, func, *args):                                                         
+       48 -        buf = io.StringIO()                                                               
+       49 -        try:                                                                              
+       50 -            with redirect_stdout(buf):                                                    
+       51 -                func(*args)                                                               
+       52 -            self._show(buf.getvalue())                                                    
+       53 -        except Exception as e:                                                            
+       54 -            self._show(f"Error: {e}")                                                     
+       64 +    def _build_tabbar(self):                                                              
+       65 +        self._tabbar = tk.Frame(self, bg=NAVY_DARK, height=42)                            
+       66 +        self._tabbar.pack(fill="x")                                                       
+       67 +        self._tabbar.pack_propagate(False)                                                
+       68  
+       56 -    # --- tabs ---                                                                        
+       69 +        self._tab_btns = {}                                                               
+       70 +        tabs = [                                                                          
+       71 +            ("search",    "✈   Search Flights"),                                          
+       72 +            ("book",      "🎫   Book Ticket"),                                            
+       73 +            ("itinerary", "📋   View Itinerary"),                                         
+       74 +        ]                                                                                 
+       75 +        for key, label in tabs:                                                           
+       76 +            btn = tk.Button(                                                              
+       77 +                self._tabbar, text=label, bd=0, padx=22, pady=0,                          
+       78 +                font=("Helvetica Neue", 10), cursor="hand2",                              
+       79 +                command=lambda k=key: self._switch(k),                                    
+       80 +            )                                                                             
+       81 +            btn.pack(side="left", fill="y")                                               
+       82 +            self._tab_btns[key] = btn                                                     
+       83  
+       58 -    def _build_search_tab(self, nb):                                                      
+       59 -        frame = ttk.Frame(nb, padding=10)                                                 
+       60 -        nb.add(frame, text="Search Flights")                                              
+       61 -        frame.columnconfigure(1, weight=1)                                                
+       84 +    def _switch(self, key):                                                               
+       85 +        if self._current_tab == key:                                                      
+       86 +            return                                                                        
+       87 +        self._current_tab = key                                                           
+       88  
+       63 -        self.s_dep  = self._row(frame, "Departure (e.g. JFK)", 0, self._entry)            
+       64 -        self.s_arr  = self._row(frame, "Arrival (e.g. LAX)",   1, self._entry)            
+       65 -        self.s_date = self._row(frame, "Date (YYYY-MM-DD)",    2, self._entry)            
+       89 +        for k, btn in self._tab_btns.items():                                             
+       90 +            if k == key:                                                                  
+       91 +                btn.config(bg=BLUE, fg="white", font=("Helvetica Neue", 10, "bold"),      
+       92 +                           activebackground=BLUE_HOV, activeforeground="white")           
+       93 +            else:                                                                         
+       94 +                btn.config(bg=NAVY_DARK, fg="#93c5fd", font=("Helvetica Neue", 10),       
+       95 +                           activebackground=NAVY, activeforeground="white")               
+       96  
+       67 -        ttk.Button(frame, text="Search", command=self._search).grid(                      
+       68 -            row=3, column=0, columnspan=2, pady=14)                                       
+       97 +        for k, panel in self._panels.items():                                             
+       98 +            (panel.pack if k == key else panel.pack_forget)(fill="x")                     
+       99  
+       70 -    def _build_book_tab(self, nb):                                                        
+       71 -        frame = ttk.Frame(nb, padding=10)                                                 
+       72 -        nb.add(frame, text="Book Ticket")                                                 
+       73 -        frame.columnconfigure(1, weight=1)                                                
+      100 +    # ── content area ─────────────────────────────────────                               
+      101  
+       75 -        self.b_passport  = self._row(frame, "Passport ID",   0, self._entry)              
+       76 -        self.b_flight    = self._row(frame, "Flight ID",     1, self._entry)              
+       77 -        self.b_method    = self._row(frame, "Payment Method", 2,                          
+       78 -            lambda f: ttk.Combobox(f, values=["Credit Card", "Debit Card", "Cash"],       
+       79 -                                   state="readonly", width=30))                           
+      102 +    def _build_content(self):                                                             
+      103 +        self._content = tk.Frame(self, bg=BG)                                             
+      104 +        self._content.pack(fill="x", padx=24, pady=18)                                    
+      105 +                                                                                          
+      106 +        self._panels = {                                                                  
+      107 +            "search":    self._panel_search(),                                            
+      108 +            "book":      self._panel_book(),                                              
+      109 +            "itinerary": self._panel_itinerary(),                                         
+      110 +        }                                                                                 
+      111 +                                                                                          
+      112 +    def _card(self, title):                                                               
+      113 +        """Returns a white card frame with a titled header. Use the body frame for fields.
+          +"""                                                                                       
+      114 +        outer = tk.Frame(self._content, bg=BG)                                            
+      115 +                                                                                          
+      116 +        shadow = tk.Frame(outer, bg=BORDER)                                               
+      117 +        shadow.pack(fill="x", padx=1, pady=1)                                             
+      118 +                                                                                          
+      119 +        card = tk.Frame(shadow, bg=CARD)                                                  
+      120 +        card.pack(fill="x", padx=1, pady=1)                                               
+      121 +                                                                                          
+      122 +        tk.Label(card, text=title, bg=CARD, fg=TEXT,                                      
+      123 +                 font=("Helvetica Neue", 13, "bold")).pack(anchor="w", padx=20, pady=(16, 
+          +0))                                                                                       
+      124 +        tk.Frame(card, bg=BORDER, height=1).pack(fill="x", padx=20, pady=(10, 0))         
+      125 +                                                                                          
+      126 +        body = tk.Frame(card, bg=CARD)                                                    
+      127 +        body.pack(fill="x", padx=20, pady=16)                                             
+      128 +                                                                                          
+      129 +        return outer, body                                                                
+      130 +                                                                                          
+      131 +    def _field(self, parent, label, row, col, factory=None):                              
+      132 +        """Labelled input cell for a grid parent."""                                      
+      133 +        cell = tk.Frame(parent, bg=CARD)                                                  
+      134 +        cell.grid(row=row, column=col, sticky="nsew", padx=(0, 14), pady=6)               
+      135 +        cell.columnconfigure(0, weight=1)                                                 
+      136 +                                                                                          
+      137 +        tk.Label(cell, text=label.upper(), bg=CARD, fg=MUTED,                             
+      138 +                 font=("Helvetica Neue", 8, "bold")).pack(anchor="w")                     
+      139 +                                                                                          
+      140 +        w = factory(cell) if factory else ttk.Entry(cell, font=("Helvetica Neue", 11))    
+      141 +        w.pack(fill="x", ipady=5, pady=(3, 0))                                            
+      142 +        return w                                                                          
+      143 +                                                                                          
+      144 +    def _btn(self, parent, text, cmd):                                                    
+      145 +        return tk.Button(                                                                 
+      146 +            parent, text=text, command=cmd,                                               
+      147 +            bg=BLUE, fg="white", activebackground=BLUE_HOV, activeforeground="white",     
+      148 +            font=("Helvetica Neue", 11, "bold"), bd=0, padx=26, pady=9,                   
+      149 +            cursor="hand2", relief="flat",                                                
+      150 +        )                                                                                 
+      151 +                                                                                          
+      152 +    # ── panels ───────────────────────────────────────────                               
+      153 +                                                                                          
+      154 +    def _panel_search(self):                                                              
+      155 +        outer, body = self._card("Search Available Flights")                              
+      156 +        body.columnconfigure((0, 1), weight=1)                                            
+      157 +                                                                                          
+      158 +        self.s_dep  = self._field(body, "Departure (IATA code)", 0, 0)                    
+      159 +        self.s_arr  = self._field(body, "Arrival (IATA code)",   0, 1)                    
+      160 +        self.s_date = self._field(body, "Travel date (YYYY-MM-DD)", 1, 0)                 
+      161 +                                                                                          
+      162 +        f = tk.Frame(body, bg=CARD)                                                       
+      163 +        f.grid(row=2, column=0, columnspan=2, sticky="w", pady=(10, 0))                   
+      164 +        self._btn(f, "Search Flights  →", self._do_search).pack(side="left")              
+      165 +        return outer                                                                      
+      166 +                                                                                          
+      167 +    def _panel_book(self):                                                                
+      168 +        outer, body = self._card("Book a Ticket")                                         
+      169 +        body.columnconfigure((0, 1), weight=1)                                            
+      170 +                                                                                          
+      171 +        self.b_passport = self._field(body, "Passport ID",    0, 0)                       
+      172 +        self.b_flight   = self._field(body, "Flight ID",      0, 1)                       
+      173 +        self.b_method   = self._field(body, "Payment method", 1, 0,                       
+      174 +            factory=lambda p: ttk.Combobox(                                               
+      175 +                p, values=["Credit Card", "Debit Card", "Cash"],                          
+      176 +                state="readonly", font=("Helvetica Neue", 11),                            
+      177 +            ))                                                                            
+      178          self.b_method.set("Credit Card")
+      179  
+       82 -        ttk.Button(frame, text="Book", command=self._book).grid(                          
+       83 -            row=3, column=0, columnspan=2, pady=14)                                       
+      180 +        f = tk.Frame(body, bg=CARD)                                                       
+      181 +        f.grid(row=2, column=0, columnspan=2, sticky="w", pady=(10, 0))                   
+      182 +        self._btn(f, "Book Ticket  →", self._do_book).pack(side="left")                   
+      183 +        return outer                                                                      
+      184  
+       85 -    def _build_itinerary_tab(self, nb):                                                   
+       86 -        frame = ttk.Frame(nb, padding=10)                                                 
+       87 -        nb.add(frame, text="View Itinerary")                                              
+       88 -        frame.columnconfigure(1, weight=1)                                                
+      185 +    def _panel_itinerary(self):                                                           
+      186 +        outer, body = self._card("View Itinerary")                                        
+      187 +        body.columnconfigure(0, weight=1)                                                 
+      188  
+       90 -        self.i_res = self._row(frame, "Reservation ID", 0, self._entry)                   
+      189 +        self.i_res = self._field(body, "Reservation ID", 0, 0)                            
+      190  
+       92 -        ttk.Button(frame, text="View", command=self._itinerary).grid(                     
+       93 -            row=1, column=0, columnspan=2, pady=14)                                       
+      191 +        f = tk.Frame(body, bg=CARD)                                                       
+      192 +        f.grid(row=1, column=0, sticky="w", pady=(10, 0))                                 
+      193 +        self._btn(f, "View Itinerary  →", self._do_itinerary).pack(side="left")           
+      194 +        return outer                                                                      
+      195  
+       95 -    # --- actions ---                                                                     
+      196 +    # ── output ───────────────────────────────────────────                               
+      197  
+       97 -    def _search(self):                                                                    
+      198 +    def _build_output(self):                                                              
+      199 +        wrapper = tk.Frame(self, bg=BG)                                                   
+      200 +        wrapper.pack(fill="both", expand=True, padx=24, pady=(0, 20))                     
+      201 +                                                                                          
+      202 +        # label row                                                                       
+      203 +        lrow = tk.Frame(wrapper, bg=BG)                                                   
+      204 +        lrow.pack(fill="x", pady=(0, 6))                                                  
+      205 +        tk.Label(lrow, text="OUTPUT", bg=BG, fg=MUTED,                                    
+      206 +                 font=("Helvetica Neue", 8, "bold")).pack(side="left")                    
+      207 +        self._dot = tk.Label(lrow, text="●", bg=BG, fg=BORDER,                            
+      208 +                             font=("Helvetica Neue", 11))                                 
+      209 +        self._dot.pack(side="right")                                                      
+      210 +                                                                                          
+      211 +        # terminal box                                                                    
+      212 +        box = tk.Frame(wrapper, bg=TERM_BG)                                               
+      213 +        box.pack(fill="both", expand=True)                                                
+      214 +                                                                                          
+      215 +        self._out = tk.Text(                                                              
+      216 +            box, state="disabled", wrap="word",                                           
+      217 +            bg=TERM_BG, fg=TERM_FG,                                                       
+      218 +            font=("Menlo", 10), bd=0, padx=16, pady=14,                                   
+      219 +            selectbackground=BLUE, insertbackground=TERM_FG,                              
+      220 +        )                                                                                 
+      221 +        sb = ttk.Scrollbar(box, command=self._out.yview)                                  
+      222 +        self._out.configure(yscrollcommand=sb.set)                                        
+      223 +        self._out.pack(side="left", fill="both", expand=True)                             
+      224 +        sb.pack(side="right", fill="y")                                                   
+      225 +                                                                                          
+      226 +    def _show(self, text, ok=True):                                                       
+      227 +        self._out.config(state="normal")                                                  
+      228 +        self._out.delete("1.0", tk.END)                                                   
+      229 +        self._out.insert(tk.END, text.strip() or "(no output returned)")                  
+      230 +        self._out.config(state="disabled")                                                
+      231 +        self._dot.config(fg=GREEN if ok else RED)                                         
+      232 +                                                                                          
+      233 +    # ── actions ──────────────────────────────────────────                               
+      234 +                                                                                          
+      235 +    def _call(self, func, *args):                                                         
+      236 +        buf = io.StringIO()                                                               
+      237 +        try:                                                                              
+      238 +            with redirect_stdout(buf):                                                    
+      239 +                func(*args)                                                               
+      240 +            self._show(buf.getvalue(), ok=True)                                           
+      241 +        except Exception as e:                                                            
+      242 +            self._show(f"Error: {e}", ok=False)                                           
+      243 +                                                                                          
+      244 +    def _do_search(self):                                                                 
+      245          self._call(search_available_flights,
+      246                     self.s_dep.get(), self.s_arr.get(), self.s_date.get())
+      247  
+      101 -    def _book(self):                                                                      
+      248 +    def _do_book(self):                                                                   
+      249          self._call(make_reservation_and_book_ticket,
+      250                     self.b_passport.get(), self.b_flight.get(), self.b_method.get())
+      251  
+      105 -    def _itinerary(self):                                                                 
+      252 +    def _do_itinerary(self):                                                              
+      253          self._call(view_itinerary, self.i_res.get())
+      254  
+      255  
+
+⏺ Here's what changed:
+
+  - Header — deep navy bar with the SKYBOOK brand name and a large plane icon
+  - Custom tab bar — dark nav strip; active tab highlights in blue with bold text
+  - Card layout — each form lives in a white card with a titled header, a hairline divider, and a subtle 1px
+   border/shadow
+  - Two-column field grid — Search and Book lay fields out side-by-side with uppercase muted labels above
+  each input (like a modern web form)
+  - Styled buttons — solid blue with a → arrow, hover darkens
+  - Dark terminal output — #0f172a background with light text and Menlo monospace font, with a scrollbar
+  - Status dot — top-right of the output section flips green on success, red on error
+
+  Run with python gui.py as before.
+ 

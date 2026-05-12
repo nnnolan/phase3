@@ -154,12 +154,12 @@ def view_itinerary(reservation_id):
 
 
 
-if __name__ == "__main__" and len(sys.argv) < 2:
+if len(sys.argv) < 2:
     print("Usage:")
     print("  python app.py search <departure> <arrival> <date>")
     print("  python app.py book <passport_id> <flight_id> <method>")
     print("  python app.py itinerary <reservation_id>")
-elif __name__ == "__main__":
+else:
     cmd = sys.argv[1]
     if cmd == "search":
         search_available_flights(sys.argv[2], sys.argv[3], sys.argv[4])
