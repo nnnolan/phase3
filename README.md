@@ -20,6 +20,10 @@ mysql -u root airline_db < seed.sql
 pip install mysql-connector-python
 ```
 
+(dropping db)
+```
+mysql -u root -e "DROP DATABASE IF EXISTS airline_db;"
+```
 
 ## Running it
 
